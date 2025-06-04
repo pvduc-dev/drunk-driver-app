@@ -1,0 +1,51 @@
+import { Trip } from '@lib/db-lib';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
+import { TripsService } from './trips.service';
+import { ApiOkResponse } from '@nestjs/swagger';
+import { Auth, User } from '@lib/auth-lib';
+
+@Controller('trips')
+@Auth()
+export class TripsController {
+  constructor(private readonly tripsService: TripsService) {}
+
+  @Post()
+  async createTrip(
+    @Body() trip: Trip,
+    @User('id') userId: string,
+  ): Promise<Trip> {
+    return this.tripsService.createTrip({
+      ...trip,
+      customerId: userId,
+    });
+  }
+
+  @Get()
+  @ApiOkResponse({ type: Trip, isArray: true })
+  async getTrips(@User('id') userId: string): Promise<Trip[]> {
+    return this.tripsService.getTrips(userId);
+  }
+
+  @Get(':id')
+  async getTrip(@Param('id') id: string): Promise<Trip> {
+    return this.tripsService.getTrip(id);
+  }
+
+  @Put(':id')
+  async updateTrip(@Param('id') id: string, @Body() trip: Trip): Promise<Trip> {
+    return this.tripsService.updateTrip(id, trip);
+  }
+
+  @Delete(':id')
+  async cancelTrip(@Param('id') id: string): Promise<Trip> {
+    return this.tripsService.cancelTrip(id);
+  }
+}

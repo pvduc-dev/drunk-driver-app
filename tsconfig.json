@@ -1,0 +1,65 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2023",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@lib/notify-lib": [
+        "libs/notify-lib/src"
+      ],
+      "@lib/notify-lib/*": [
+        "libs/notify-lib/src/*"
+      ],
+      "@lib/otp-lib": [
+        "libs/otp-lib/src"
+      ],
+      "@lib/otp-lib/*": [
+        "libs/otp-lib/src/*"
+      ],
+      "@lib/auth": [
+        "libs/auth/src"
+      ],
+      "@lib/auth-lib": [
+        "libs/auth-lib/src"
+      ],
+      "@lib/auth-lib/*": [
+        "libs/auth-lib/src/*"
+      ],
+      "@lib/auth/*": [
+        "libs/auth/src/*"
+      ],
+      "@lib/db-lib": [
+        "libs/db-lib/src"
+      ],
+      "@lib/db-lib/*": [
+        "libs/db-lib/src/*"
+      ],
+      "@lib/geo-lib": [
+        "libs/geo-lib/src"
+      ],
+      "@lib/geo-lib/*": [
+        "libs/geo-lib/src/*"
+      ],
+      "@lib/sms-lib": [
+        "libs/sms-lib/src"
+      ],
+      "@lib/sms-lib/*": [
+        "libs/sms-lib/src/*"
+      ]
+    }
+  }
+}
