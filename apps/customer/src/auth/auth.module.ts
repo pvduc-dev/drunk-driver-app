@@ -4,9 +4,10 @@ import { AuthService } from './auth.service';
 import { AuthLibModule } from '@lib/auth-lib';
 import { DbLibModule } from '@lib/db-lib';
 import { OtpLibModule } from '@lib/otp-lib';
+import { NotifyLibModule } from '@lib/notify-lib';
 
 @Module({
-  imports: [DbLibModule, AuthLibModule, OtpLibModule],
+  imports: [DbLibModule, AuthLibModule, OtpLibModule, NotifyLibModule],
   controllers: [AuthController],
   providers: [AuthService],
 })

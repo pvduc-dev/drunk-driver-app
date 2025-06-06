@@ -3,6 +3,9 @@ import { Job } from 'bullmq';
 import { TripsService } from './trips.service';
 import { NotifyLibService } from '@lib/notify-lib';
 import { DriversService } from '../drivers/drivers.service';
+import { InjectRedis } from '@nestjs-modules/ioredis';
+import Redis from 'ioredis';
+import { fromEvent, timeout, take, map, tap, TimeoutError } from 'rxjs';
 
 @Processor('trips')
 export class TripsProcessor extends WorkerHost {
@@ -10,33 +13,50 @@ export class TripsProcessor extends WorkerHost {
     private readonly tripsService: TripsService,
     private readonly driversService: DriversService,
     private readonly notifyLibService: NotifyLibService,
+    @InjectRedis() private readonly redis: Redis,
   ) {
     super();
   }
 
-  async process(job: Job) {
-    const { tripId }: { tripId: string } = job.data;
-    const trip = await this.tripsService.getTrip(tripId);
-    const drivers = await this.driversService.getNearbyDrivers(
-      trip.pickup,
-    );
-    // eslint-disable-next-line no-constant-condition
-    if (false) {
-      await this.tripsService.cancelByTimeout(tripId);
-      return;
-    }
-    if (drivers.length === 0) {
-      throw new Error('No driver found');
-    }
-    const [driver] = drivers;
-    await this.notifyLibService.push({
-      userId: driver.id,
-      title: 'Có khách hàng tìm tài xế gần đây',
-      body: `Khách hàng đang tìm tài xế ở vị trí ${trip.pickup.description}`,
-      data: {
-        event: 'TRIP_FOUND',
-        tripId,
-      },
+  process(job: Job): Promise<any> {
+    return new Promise((resolve, reject) => {
+      if (job.data.tripId) {
+        const tripId = job.data.tripId as string;
+
+        fromEvent(this.redis, 'message')
+          .pipe(
+            timeout(5000),
+            take(1),
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            map(([_, message]) => message as string),
+            tap(() => {
+              this.redis.unsubscribe(tripId).catch((err: Error) => {
+                reject(err);
+              });
+            }),
+          )
+          .subscribe({
+            next: (message) => {
+              if (message === 'DRIVER_ACCEPT') {
+                resolve(true);
+              } else {
+                reject(new Error('Driver did not accept the trip'));
+              }
+            },
+            error: (err: Error) => {
+              if (err instanceof TimeoutError) {
+                console.log('timeout');
+                reject(new Error('Driver did not accept the trip'));
+              } else {
+                reject(err);
+              }
+            },
+          });
+
+        this.redis.subscribe(tripId).catch((err: Error) => {
+          reject(err);
+        });
+      }
     });
   }
 }

@@ -13,7 +13,6 @@ import { ApiOkResponse } from '@nestjs/swagger';
 import { Auth, User } from '@lib/auth-lib';
 
 @Controller('trips')
-@Auth()
 export class TripsController {
   constructor(private readonly tripsService: TripsService) {}
 

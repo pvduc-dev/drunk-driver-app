@@ -36,7 +36,6 @@ export class OtpsController {
     const otp = await this.otpLibService.generate(generateOtpRequestDto.phone);
     return {
       verificationId: otp.id,
-      expirationTime: otp.expirationTime,
     };
   }
 
@@ -55,13 +54,11 @@ export class OtpsController {
     const otp = await this.otpLibService.verify(
       verifyOtpRequestDto.phone,
       verifyOtpRequestDto.otpCode,
-      verifyOtpRequestDto.verificationId,
     );
     if (!otp) {
       throw new BadRequestException(['OTP code is invalid']);
     }
     return {
-      secret: otp.secret ?? '',
       phone: otp.phone ?? '',
     };
   }

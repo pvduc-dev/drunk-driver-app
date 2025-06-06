@@ -5,6 +5,7 @@ import { DbLibModule } from '@lib/db-lib';
 import { BullModule } from '@nestjs/bullmq';
 import { DriversModule } from '../drivers/drivers.module';
 import { NotifyLibModule } from '@lib/notify-lib';
+import { TripsProcessor } from './trips.processor';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { NotifyLibModule } from '@lib/notify-lib';
       name: 'trips',
     }),
   ],
-  providers: [TripsService],
+  providers: [TripsService, TripsProcessor],
   controllers: [TripsController],
 })
 export class TripsModule {}

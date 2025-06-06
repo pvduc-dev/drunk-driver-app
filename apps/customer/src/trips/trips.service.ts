@@ -38,14 +38,12 @@ export class TripsService {
       'find-driver',
       {
         tripId: createdTrip._id,
-        abortAt: new Date(Date.now() + 5 * 60 * 1000),
       },
       {
-        jobId: `trip-${createdTrip._id.toString()}`,
-        attempts: 600,
+        attempts: 10,
         backoff: {
           type: 'fixed',
-          delay: 500,
+          delay: 0,
         },
       },
     );
