@@ -4,7 +4,7 @@
   "sourceRoot": "apps/drunk-driver-app/src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "webpack": false,
+    "webpack": true,
     "plugins": [
       "@nestjs/swagger/plugin"
     ]

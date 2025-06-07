@@ -5418,6 +5418,11 @@ nestjs-firebase@^10.6.0:
   resolved "https://registry.yarnpkg.com/nestjs-firebase/-/nestjs-firebase-10.6.0.tgz#e4b3b8aa6b5775aa9692b9456ebfa7c91e4f9316"
   integrity sha512-07+OFdxL71R0LxjW1XmhbQ1YgdiSukLIVeRFyOagj0+bDuT7JaQc33mBn6EgTagMtXHD7hejXnH4fkgYqFrnaw==
 
+nestjs-pino@^4.4.0:
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/nestjs-pino/-/nestjs-pino-4.4.0.tgz#663936d44fef6d82fd1aa4bf477fe3d6f5a8bb04"
+  integrity sha512-+GMNlcNWDRrMtlQftfcxN+5pV2C25A4wsYIY7cfRJTMW4b8IFKYReDrG1lUp5LGql9fXemmnVJ2Ww10iIkCZPQ==
+
 nestjs-twilio@^4.4.0:
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/nestjs-twilio/-/nestjs-twilio-4.4.0.tgz#6b3a9fb95ad9b14d0f35052fac37f897b6789b21"

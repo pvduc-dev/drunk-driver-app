@@ -15,6 +15,12 @@ import { AuthModule } from './auth/auth.module';
     MongooseModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
         uri: configService.get<string>('MONGODB_URI'),
+        user: configService.get<string>('MONGODB_USER'),
+        pass: configService.get<string>('MONGODB_PASSWORD'),
+        dbName: configService.get<string>('MONGODB_DB_NAME'),
+        autoIndex: true,
+        authSource: 'admin',
+        retryWrites: true,
       }),
       inject: [ConfigService],
     }),
