@@ -4,7 +4,7 @@ import { AuthLibService } from '@lib/auth-lib';
 import { Driver } from '@lib/db-lib';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { DriverDto } from './dto/driver.dto';
+import { LoginResponseDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -21,7 +21,7 @@ export class AuthService {
     };
   }
 
-  async login(phone: string, otpCode: string): Promise<any> {
+  async login(phone: string, otpCode: string): Promise<LoginResponseDto> {
     const otp = await this.otpLibService.validate(phone, otpCode);
     if (!otp) {
       throw new UnauthorizedException('Invalid OTP');
@@ -33,10 +33,11 @@ export class AuthService {
     );
     return {
       token: this.generateToken(user.id as string),
-      id: user.id,
+      user,
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async logout(userId: string): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 0));
     return;
@@ -48,11 +49,11 @@ export class AuthService {
     });
   }
 
-  async getMe(userId: string): Promise<DriverDto> {
+  async getMe(userId: string): Promise<Driver> {
     const user = await this.userModel.findById(userId);
-    return {
-      id: user!.id,
-      phone: user!.phone,
-    };
+    if (!user) {
+      throw new UnauthorizedException('Không tìm thấy tài khoản');
+    }
+    return user;
   }
 }

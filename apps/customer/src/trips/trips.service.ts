@@ -85,4 +85,15 @@ export class TripsService {
     await this.tripsQueue.remove(`trip-${tripId}`);
     return trip;
   }
+
+  async getCurrentTrip(customerId: string): Promise<Trip> {
+    const trip = await this.tripModel.findOne({
+      customerId,
+      status: { $in: ['pending', 'accepted', 'in_progress'] },
+    });
+    if (!trip) {
+      throw new NotFoundException('Trip not found');
+    }
+    return trip;
+  }
 }

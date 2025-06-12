@@ -1,11 +1,11 @@
+import { Customer } from '@lib/db-lib';
+
 export class LoginRequestDto {
   phone: string;
-
-  otpSecret: string;
+  otpCode: string;
 }
 
 export class LoginResponseDto {
-  accessToken: string;
-
-  refreshToken: string;
+  token?: string;
+  user?: Customer;
 }

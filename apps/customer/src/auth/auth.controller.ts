@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -12,8 +13,9 @@ import { ApiOkResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { NotifyLibService } from '@lib/notify-lib';
 import { UpdateDeviceTokenRequestDto } from './dto/update-device-token.dto';
-import { User } from '@lib/auth-lib';
-import { RequestOtpRequestDto } from './dto/request-otp';
+import { Auth, User } from '@lib/auth-lib';
+import { RequestOtpRequestDto, RequestOtpResponseDto } from './dto/request-otp';
+import { Customer } from '@lib/db-lib';
 
 @Controller('auth')
 export class AuthController {
@@ -25,10 +27,9 @@ export class AuthController {
   @Post('request-otp')
   async requestOtp(
     @Body() requestOtpRequestDto: RequestOtpRequestDto,
-  ): Promise<any> {
+  ): Promise<RequestOtpResponseDto> {
     await this.authService.requestOtp(requestOtpRequestDto.phone);
     return {
-      otp: '123456',
       phone: requestOtpRequestDto.phone,
     };
   }
@@ -40,12 +41,7 @@ export class AuthController {
   async login(
     @Body() loginRequestDto: LoginRequestDto,
   ): Promise<LoginResponseDto> {
-    const { accessToken, refreshToken } =
-      await this.authService.login(loginRequestDto);
-    return {
-      accessToken,
-      refreshToken,
-    };
+    return this.authService.login(loginRequestDto);
   }
 
   @Post('register')
@@ -55,12 +51,7 @@ export class AuthController {
   async register(
     @Body() registerRequestDto: RegisterRequestDto,
   ): Promise<RegisterResponseDto> {
-    const { accessToken, refreshToken } =
-      await this.authService.register(registerRequestDto);
-    return {
-      accessToken,
-      refreshToken,
-    };
+    return this.authService.register(registerRequestDto);
   }
 
   @Put('device-token')
@@ -73,6 +64,22 @@ export class AuthController {
       userId,
       updateDeviceTokenRequestDto.token,
     );
+    return;
+  }
+
+  @Get('me')
+  @ApiOkResponse({ type: Customer })
+  @Auth()
+  async getMe(@User('id') userId: string): Promise<Customer> {
+    console.log(userId);
+    return this.authService.getCustomerById(userId);
+  }
+
+  @Post('logout')
+  @Auth()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
+  async logout(@User('id') userId: string): Promise<any> {
     return;
   }
 }

@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
-import { OtpsModule } from './otps/otps.module';
 import { TripsModule } from './trips/trips.module';
 import { GeoModule } from './geo/geo.module';
 import { BullModule } from '@nestjs/bullmq';
@@ -15,6 +14,12 @@ import { BullModule } from '@nestjs/bullmq';
     MongooseModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
         uri: configService.get<string>('MONGODB_URI'),
+        user: configService.get<string>('MONGODB_USER'),
+        pass: configService.get<string>('MONGODB_PASSWORD'),
+        dbName: configService.get<string>('MONGODB_DB_NAME'),
+        autoIndex: true,
+        authSource: 'admin',
+        retryWrites: true,
       }),
       inject: [ConfigService],
     }),
@@ -29,7 +34,6 @@ import { BullModule } from '@nestjs/bullmq';
       inject: [ConfigService],
     }),
     AuthModule,
-    OtpsModule,
     TripsModule,
     GeoModule,
   ],

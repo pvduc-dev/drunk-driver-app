@@ -70,11 +70,26 @@ export class NotifyLibService {
     }
     await this.firebase.messaging.send({
       token: token,
-      notification: {
-        title: title,
-        body: body,
-      },
       data: data,
+      apns: {
+        payload: {
+          aps: {
+            sound: 'default',
+            badge: 1,
+            alert: {
+              title: title,
+              body: body,
+            },
+          },
+        },
+        headers: {
+          'apns-priority': '10',
+          'apns-push-type': 'alert',
+        },
+      },
+      android: {
+        priority: 'high',
+      },
     });
   }
 

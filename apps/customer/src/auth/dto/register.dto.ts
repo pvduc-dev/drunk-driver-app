@@ -1,3 +1,4 @@
+import { Customer, Driver } from '@lib/db-lib';
 import { AddressDto } from '@lib/geo-lib';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -6,14 +7,16 @@ export class RegisterRequestDto {
 
   phone: string;
 
-  otpSecret: string;
+  otpCode: string;
 
   @ApiPropertyOptional({ type: () => AddressDto })
   address: AddressDto;
 }
 
 export class RegisterResponseDto {
-  accessToken: string;
+  @ApiPropertyOptional({ type: String })
+  token?: string;
 
-  refreshToken: string;
+  @ApiPropertyOptional({ type: () => Customer })
+  user?: Customer;
 }

@@ -6,7 +6,6 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors();
-  app.setGlobalPrefix('/admin');
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Admin API')
@@ -16,12 +15,12 @@ async function bootstrap() {
     .build();
 
   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('admin/api-docs', app, swaggerDocument, {
-    jsonDocumentUrl: '/admin/api-docs-json',
+  SwaggerModule.setup('api-docs', app, swaggerDocument, {
+    jsonDocumentUrl: 'api-docs-json',
   });
 
   const configService: ConfigService = app.get(ConfigService);
-  const port: number = configService.get<number>('ADMIN_APP_PORT', 3222);
+  const port: number = configService.get<number>('ADMIN_APP_PORT', 7222);
   await app.listen(port);
 }
 void bootstrap();

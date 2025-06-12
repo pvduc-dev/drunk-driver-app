@@ -1,5 +1,8 @@
-/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { OtpLibService } from '@lib/otp-lib';
 import { AuthLibService } from '@lib/auth-lib';
 import { RegisterRequestDto, RegisterResponseDto } from './dto/register.dto';
@@ -24,38 +27,26 @@ export class AuthService {
   }
 
   async login(loginRequestDto: LoginRequestDto): Promise<LoginResponseDto> {
-    const { phone, otpSecret } = loginRequestDto;
-    const otp = await this.otpLibService.validate(phone, otpSecret);
+    const { phone, otpCode } = loginRequestDto;
+    const otp = await this.otpLibService.validate(phone, otpCode);
     if (!otp) {
-      throw new UnauthorizedException('OTP is invalid');
+      throw new UnauthorizedException('Mã OTP không hợp lệ');
     }
     const user = await this.userModel.findOne({ phone });
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
-    if (user.addresses?.length === 0) {
-      throw new UnauthorizedException('User has no addresses');
-    }
-    const accessToken = this.authLibService.generateAccessToken({
-      userId: user._id,
-    });
-    const refreshToken = this.authLibService.generateRefreshToken({
-      userId: user._id,
-    });
     return {
-      accessToken,
-      refreshToken,
+      token: user ? this.generateToken(user.id as string) : undefined,
+      user: user ?? undefined,
     };
   }
 
   async register(
     registerRequestDto: RegisterRequestDto,
   ): Promise<RegisterResponseDto> {
-    const { phone, otpSecret, fullName, address } = registerRequestDto;
-    // const otp = await this.otpLibService.validate(phone, otpSecret);
-    // if (!otp) {
-    //   throw new UnauthorizedException('OTP is invalid');
-    // }
+    const { phone, otpCode, fullName, address } = registerRequestDto;
+    const otp = await this.otpLibService.validate(phone, otpCode);
+    if (!otp) {
+      throw new UnauthorizedException('Mã OTP không hợp lệ');
+    }
     const user = await this.userModel.findOneAndUpdate(
       { phone },
       {
@@ -73,15 +64,23 @@ export class AuthService {
       },
       { new: true, upsert: true },
     );
-    const accessToken = this.authLibService.generateAccessToken({
-      userId: user._id,
-    });
-    const refreshToken = this.authLibService.generateRefreshToken({
-      userId: user._id,
-    });
     return {
-      accessToken,
-      refreshToken,
+      token: this.generateToken(user.id as string),
+      user,
     };
+  }
+
+  generateToken(sub: string): string {
+    return this.authLibService.generateAccessToken({
+      sub: sub,
+    });
+  }
+
+  async getCustomerById(id: string): Promise<Customer> {
+    const customer = await this.userModel.findById(id);
+    if (!customer) {
+      throw new NotFoundException('Customer not found');
+    }
+    return customer;
   }
 }
