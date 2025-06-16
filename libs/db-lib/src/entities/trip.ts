@@ -1,8 +1,10 @@
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { SchemaTypes } from 'mongoose';
+import { Schema as MongooseSchema } from 'mongoose';
 import { Address } from './address';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Path } from './path';
+import { Customer } from './customer';
+import { Driver } from './driver';
 
 @Schema({
   toJSON: {
@@ -20,13 +22,23 @@ export class Trip {
   @ApiPropertyOptional()
   id?: string;
 
-  @Prop({ type: SchemaTypes.ObjectId, ref: 'Customer', required: false })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'Customer',
+    required: false,
+    index: true,
+  })
   @ApiPropertyOptional()
-  customerId?: string;
+  customer?: Customer;
 
-  @Prop({ type: SchemaTypes.ObjectId, ref: 'Driver', required: false })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'Driver',
+    required: false,
+    index: true,
+  })
   @ApiPropertyOptional()
-  driverId?: string;
+  driver?: Driver;
 
   @Prop({ type: SchemaFactory.createForClass(Address) })
   @ApiPropertyOptional()
@@ -51,6 +63,7 @@ export class Trip {
   completedAt?: Date;
 
   @Prop({ default: 'pending' })
+  @ApiPropertyOptional()
   status?: string;
 
   @Prop()

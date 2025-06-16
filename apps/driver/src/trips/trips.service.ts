@@ -40,7 +40,7 @@ export class TripsService {
       throw new NotFoundException('Trip not found');
     }
     await this.notifyLibService.push({
-      userId: trip.customerId as string,
+      userId: trip.customer as string,
       title: 'Đã tìm thấy tài xế cho bạn',
       body: `Tài xế sẽ đến địa điểm của bạn trong khoảng 10 phút`,
       data: {
@@ -63,7 +63,7 @@ export class TripsService {
     return trip;
   }
 
-  async cancelByDriver(tripId: string) {
+  async cancelByDriver(tripId: string): Promise<void> {
     const trip = await this.tripModel.findOneAndUpdate(
       { _id: tripId },
       {
@@ -71,19 +71,17 @@ export class TripsService {
       },
       { new: true },
     );
-    if (!trip) {
-      throw new NotFoundException('Trip not found');
+    if (trip) {
+      await this.notifyLibService.push({
+        userId: trip.customer as string,
+        title: 'Tài xế đã hủy chuyển đi của bạn',
+        body: `Tài xế đã hủy chuyển đi của bạn`,
+        data: {
+          event: 'TRIP_CANCELLED',
+          tripId,
+        },
+      });
     }
-    await this.notifyLibService.push({
-      userId: trip.customerId as string,
-      title: 'Tài xế đã hủy chuyển đi của bạn',
-      body: `Tài xế đã hủy chuyển đi của bạn`,
-      data: {
-        event: 'TRIP_CANCELLED',
-        tripId,
-      },
-    });
-    return trip;
   }
 
   async cancelByTimeout(tripId: string) {
@@ -92,35 +90,29 @@ export class TripsService {
       { status: 'cancelled' },
       { new: true },
     );
-    if (!trip) {
-      throw new NotFoundException('Trip not found');
+    if (trip) {
+      await this.notifyLibService.push({
+        userId: trip.customer as string,
+        title: 'Không thể tìm thấy tài xế cho bạn',
+        body: `Không thể tìm thấy tài xế cho bạn`,
+        data: {
+          event: 'SEARCH_DRIVER_TIMEOUT',
+          tripId,
+        },
+      });
     }
-    await this.notifyLibService.push({
-      userId: trip.customerId as string,
-      title: 'Không thể tìm thấy tài xế cho bạn',
-      body: `Không thể tìm thấy tài xế cho bạn`,
-      data: {
-        event: 'TRIP_TIMEOUT',
-        tripId,
-      },
-    });
-    return trip;
   }
 
-  async startTrip(tripId: string) {
-    const trip = await this.tripModel.findOneAndUpdate(
+  async startTrip(tripId: string): Promise<void> {
+    await this.tripModel.findOneAndUpdate(
       { _id: tripId },
       { status: 'processing', startedAt: new Date() },
       { new: true },
     );
-    if (!trip) {
-      throw new NotFoundException('Trip not found');
-    }
-    return trip;
   }
 
-  async completeTrip(tripId: string) {
-    const trip = await this.tripModel.findOneAndUpdate(
+  async completeTrip(tripId: string): Promise<void> {
+    await this.tripModel.findOneAndUpdate(
       { _id: tripId, status: 'processing' },
       {
         status: 'completed',
@@ -128,21 +120,13 @@ export class TripsService {
       },
       { new: true },
     );
-    if (!trip) {
-      throw new NotFoundException('Trip not found');
-    }
-    return trip;
   }
 
-  async rejectTrip(tripId: string) {
-    const trip = await this.tripModel.findOneAndUpdate(
+  async rejectTrip(tripId: string): Promise<void> {
+    await this.tripModel.findOneAndUpdate(
       { _id: tripId },
       { status: 'pending' },
       { new: true },
     );
-    if (!trip) {
-      throw new NotFoundException('Trip not found');
-    }
-    return trip;
   }
 }

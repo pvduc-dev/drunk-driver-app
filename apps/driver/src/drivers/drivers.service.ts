@@ -53,4 +53,9 @@ export class DriversService {
     }
     return driver;
   }
+
+  async getNearestDriver(tripId: string) {
+    // eslint-disable-next-line @typescript-eslint/await-thenable
+    return await '6845d44095ee3bf023a938a0';
+  }
 }

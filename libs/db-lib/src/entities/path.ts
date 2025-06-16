@@ -10,8 +10,13 @@ export class Path {
   type?: string;
 
   @ApiPropertyOptional({
-    type: [Number],
-    example: [[105.80943374510747, 21.0137625240001]],
+    type: 'array',
+    items: {
+      type: 'array',
+      items: { type: 'number' },
+      minItems: 2,
+      maxItems: 2,
+    },
   })
-  coordinates?: [number, number][];
+  coordinates: number[][];
 }

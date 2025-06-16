@@ -50,7 +50,12 @@ export class GeoController {
     type: GetPlaceResponseDto,
   })
   @HttpCode(200)
-  async getPlace(@Body() body: GetPlaceRequestDto) {
-    return this.geoLibService.getPlace(body.placeId);
+  async getPlace(
+    @Body() body: GetPlaceRequestDto,
+  ): Promise<GetPlaceResponseDto> {
+    const place = await this.geoLibService.getPlace(body.placeId);
+    return {
+      address: place,
+    };
   }
 }

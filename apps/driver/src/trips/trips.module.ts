@@ -6,6 +6,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { DriversModule } from '../drivers/drivers.module';
 import { NotifyLibModule } from '@lib/notify-lib';
 import { TripsProcessor } from './trips.processor';
+import { TripsEvent } from './trips.event';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { TripsProcessor } from './trips.processor';
       name: 'trips',
     }),
   ],
-  providers: [TripsService, TripsProcessor],
+  providers: [TripsService, TripsProcessor, TripsEvent],
   controllers: [TripsController],
 })
 export class TripsModule {}

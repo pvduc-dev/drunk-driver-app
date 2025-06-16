@@ -22,10 +22,18 @@ export class TripsProcessor extends WorkerHost {
     return new Promise((resolve, reject) => {
       if (job.data.tripId) {
         const tripId = job.data.tripId as string;
-
+        this.driversService
+          .getNearestDriver(tripId)
+          .then((driverId) => {
+            console.log(driverId);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+        console.log('DEBUG: send notification to driver');
         fromEvent(this.redis, 'message')
           .pipe(
-            timeout(5000),
+            timeout(1000),
             take(1),
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             map(([_, message]) => message as string),
@@ -45,10 +53,9 @@ export class TripsProcessor extends WorkerHost {
             },
             error: (err: Error) => {
               if (err instanceof TimeoutError) {
-                console.log('timeout');
-                reject(new Error('Driver did not accept the trip'));
+                reject(new Error('SEARCH_DRIVER_TIMEOUT'));
               } else {
-                reject(err);
+                reject(new Error('TRIP_FAILED'));
               }
             },
           });

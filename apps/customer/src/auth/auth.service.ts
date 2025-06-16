@@ -55,10 +55,7 @@ export class AuthService {
           {
             description: address.description,
             name: address.name,
-            location: {
-              type: 'Point',
-              coordinates: address.coordinates,
-            },
+            location: address.location,
           },
         ],
       },

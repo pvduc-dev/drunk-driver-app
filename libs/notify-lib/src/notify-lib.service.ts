@@ -46,13 +46,6 @@ export class NotifyLibService {
     return deviceToken;
   }
 
-  /**
-   * Push a notification to a user
-   * @param customerId
-   * @param title
-   * @param body
-   * @param data
-   */
   public async push({
     userId,
     title,

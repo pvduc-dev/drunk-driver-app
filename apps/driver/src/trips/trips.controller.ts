@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { TripsService } from './trips.service';
 import { Auth, User } from '@lib/auth-lib';
 import { Trip } from '@lib/db-lib';
@@ -19,30 +27,35 @@ export class TripsController {
   }
 
   @Post(':id/accept')
+  @HttpCode(HttpStatus.NO_CONTENT)
   async acceptTrip(
     @Param('id') id: string,
     @User('id') driverId: string,
-  ): Promise<Trip> {
-    return await this.tripsService.acceptTrip(id, driverId);
+  ): Promise<void> {
+    await this.tripsService.acceptTrip(id, driverId);
   }
 
   @Post(':id/arrive')
-  async arriveTrip(@Param('id') id: string): Promise<Trip> {
-    return await this.tripsService.arriveTrip(id);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async arriveTrip(@Param('id') id: string): Promise<void> {
+    await this.tripsService.arriveTrip(id);
   }
 
   @Post(':id/reject')
-  async rejectTrip(@Param('id') id: string): Promise<Trip> {
-    return await this.tripsService.rejectTrip(id);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async rejectTrip(@Param('id') id: string): Promise<void> {
+    await this.tripsService.rejectTrip(id);
   }
 
   @Post(':id/cancel')
-  async cancelTrip(@Param('id') id: string): Promise<Trip> {
-    return await this.tripsService.cancelByDriver(id);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async cancelTrip(@Param('id') id: string): Promise<void> {
+    await this.tripsService.cancelByDriver(id);
   }
 
   @Post(':id/complete')
-  async completeTrip(@Param('id') id: string): Promise<Trip> {
-    return await this.tripsService.completeTrip(id);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async completeTrip(@Param('id') id: string): Promise<void> {
+    await this.tripsService.completeTrip(id);
   }
 }

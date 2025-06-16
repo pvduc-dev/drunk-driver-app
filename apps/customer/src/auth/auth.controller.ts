@@ -56,6 +56,7 @@ export class AuthController {
 
   @Put('device-token')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @Auth()
   async upsertDeviceToken(
     @Body() updateDeviceTokenRequestDto: UpdateDeviceTokenRequestDto,
     @User('id') userId: string,

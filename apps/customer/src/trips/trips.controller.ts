@@ -1,9 +1,11 @@
-import { Trip } from '@lib/db-lib';
+import { Customer, Trip } from '@lib/db-lib';
 import {
   Body,
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Post,
   Put,
@@ -24,7 +26,7 @@ export class TripsController {
   ): Promise<Trip> {
     return this.tripsService.createTrip({
       ...trip,
-      customerId: userId,
+      customer: userId as Customer,
     });
   }
 
@@ -55,7 +57,8 @@ export class TripsController {
 
   @Delete(':id')
   @Auth()
-  async cancelTrip(@Param('id') id: string): Promise<Trip> {
-    return this.tripsService.cancelTrip(id);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async cancelTrip(@Param('id') id: string): Promise<void> {
+    await this.tripsService.cancelTrip(id);
   }
 }

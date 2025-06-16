@@ -1,4 +1,4 @@
-import { Location, Trip } from '@lib/db-lib';
+import { Customer, Location, Trip } from '@lib/db-lib';
 import { GeoLibService } from '@lib/geo-lib';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, NotFoundException } from '@nestjs/common';
@@ -40,23 +40,32 @@ export class TripsService {
         tripId: createdTrip._id,
       },
       {
+        jobId: createdTrip.id,
         attempts: 10,
+        delay: 100,
         backoff: {
           type: 'fixed',
-          delay: 0,
         },
       },
     );
 
-    return createdTrip;
+    return {
+      id: createdTrip.id,
+      status: createdTrip.status,
+      pickup: createdTrip.pickup,
+      dropoff: createdTrip.dropoff,
+    };
   }
 
   async getTrips(customerId: string): Promise<Trip[]> {
-    return this.tripModel.find({ customerId });
+    return this.tripModel.find({ customer: customerId as Customer });
   }
 
   async getTrip(tripId: string): Promise<Trip> {
-    const trip = await this.tripModel.findById(tripId);
+    const trip = await this.tripModel
+      .findById(tripId)
+      .populate('driver')
+      .populate('customer');
     if (!trip) {
       throw new NotFoundException('Trip not found');
     }
@@ -73,24 +82,23 @@ export class TripsService {
     return updatedTrip;
   }
 
-  async cancelTrip(tripId: string): Promise<Trip> {
-    const trip = await this.tripModel.findOneAndUpdate(
-      { _id: tripId, status: 'pending' },
+  async cancelTrip(tripId: string): Promise<void> {
+    await this.tripModel.findOneAndUpdate(
+      { _id: tripId },
       { status: 'cancelled' },
       { new: true },
     );
-    if (!trip) {
-      throw new NotFoundException('Trip not found');
-    }
     await this.tripsQueue.remove(`trip-${tripId}`);
-    return trip;
   }
 
   async getCurrentTrip(customerId: string): Promise<Trip> {
-    const trip = await this.tripModel.findOne({
-      customerId,
-      status: { $in: ['pending', 'accepted', 'in_progress'] },
-    });
+    const trip = await this.tripModel
+      .findOne({
+        customer: customerId,
+        status: { $in: ['pending', 'waiting', 'accepted', 'in_progress'] },
+      })
+      .populate('driver')
+      .populate('customer');
     if (!trip) {
       throw new NotFoundException('Trip not found');
     }
