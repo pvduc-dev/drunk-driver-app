@@ -3,17 +3,25 @@ import { TripsService } from './trips.service';
 import { TripsController } from './trips.controller';
 import { DbLibModule } from '@lib/db-lib';
 import { GeoLibModule } from '@lib/geo-lib';
-import { BullModule } from '@nestjs/bullmq';
 import { NotifyLibModule } from '@lib/notify-lib';
 import { ConfigService } from '@nestjs/config';
 import { RedisModule } from '@nestjs-modules/ioredis';
+import { JobLibModule } from '@lib/job-lib';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
     DbLibModule,
     GeoLibModule,
+    JobLibModule,
     BullModule.registerQueue({
-      name: 'trips',
+      name: 'SEARCH_DRIVER',
+    }),
+    BullModule.registerQueue({
+      name: 'CANCEL_SEACHING',
+    }),
+    BullModule.registerQueue({
+      name: 'CANCEL_REQUEST',
     }),
     RedisModule.forRootAsync({
       inject: [ConfigService],

@@ -1,4 +1,4 @@
-import { Driver } from '@lib/db-lib';
+import { Driver, DriverStatus } from '@lib/db-lib';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Location } from '@lib/db-lib';
 
@@ -10,11 +10,11 @@ export class DriverDto implements Driver {
   phone?: string;
 
   @ApiPropertyOptional()
-  fullName?: string;
+  name?: string;
 
   @ApiPropertyOptional()
   location?: Location;
 
   @ApiPropertyOptional()
-  status?: string;
+  status?: DriverStatus;
 }

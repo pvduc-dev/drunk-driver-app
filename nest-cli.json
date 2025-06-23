@@ -65,6 +65,15 @@
         "tsConfigPath": "apps/driver/tsconfig.app.json"
       }
     },
+    "job-lib": {
+      "type": "library",
+      "root": "libs/job-lib",
+      "entryFile": "index",
+      "sourceRoot": "libs/job-lib/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/job-lib/tsconfig.lib.json"
+      }
+    },
     "notification": {
       "type": "library",
       "root": "libs/notification",

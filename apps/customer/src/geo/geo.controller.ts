@@ -42,7 +42,12 @@ export class GeoController {
   })
   @HttpCode(200)
   async getPlaces(@Body() body: GetPlacesRequestDto) {
-    return this.geoLibService.getPlaces(body.query);
+    return this.geoLibService.getPlaces(
+      body.query,
+      body.location ?? {
+        coordinates: [105.864323, 20.981971],
+      },
+    );
   }
 
   @Post('place')

@@ -108,6 +108,7 @@
       "^@app/otp-lib(|/.*)$": "<rootDir>/libs/otp-lib/src/$1",
       "^@lib/auth(|/.*)$": "<rootDir>/libs/auth/src/$1",
       "^@lib/auth-lib(|/.*)$": "<rootDir>/libs/auth-lib/src/$1",
+      "^@lib/job-lib(|/.*)$": "<rootDir>/libs/job-lib/src/$1",
       "^@lib/sms-lib(|/.*)$": "<rootDir>/libs/sms-lib/src/$1"
     }
   }

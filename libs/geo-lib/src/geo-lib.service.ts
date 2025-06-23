@@ -56,7 +56,6 @@ export class GeoLibService {
     if (!data.results?.length) {
       throw new NotFoundException('Cannot find location');
     }
-    console.log(data.results);
     const result = data.results[0];
     const address: Address = {
       description: result.formatted_address,
@@ -72,11 +71,15 @@ export class GeoLibService {
     return address;
   }
 
-  async getPlaces(query: string): Promise<Record<string, string | Address>[]> {
+  async getPlaces(
+    query: string,
+    location: Location,
+  ): Promise<Record<string, string | Address>[]> {
     const { data } = await firstValueFrom(
       this.httpService.get(`/Place/Autocomplete`, {
         params: {
           input: query,
+          location: `${location?.coordinates?.[1]},${location?.coordinates?.[0]}`,
         },
       }),
     );

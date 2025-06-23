@@ -1,69 +1,69 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Job } from 'bullmq';
+import { DelayedError, Job } from 'bullmq';
 import { TripsService } from './trips.service';
-import { NotifyLibService } from '@lib/notify-lib';
 import { DriversService } from '../drivers/drivers.service';
-import { InjectRedis } from '@nestjs-modules/ioredis';
-import Redis from 'ioredis';
-import { fromEvent, timeout, take, map, tap, TimeoutError } from 'rxjs';
+import { Trip, Location, TripStatus } from '@lib/db-lib';
+import { Logger } from '@nestjs/common';
 
-@Processor('trips')
-export class TripsProcessor extends WorkerHost {
+@Processor('SEARCH_DRIVER')
+export class SearchDriverProcessor extends WorkerHost {
   constructor(
     private readonly tripsService: TripsService,
     private readonly driversService: DriversService,
-    private readonly notifyLibService: NotifyLibService,
-    @InjectRedis() private readonly redis: Redis,
   ) {
     super();
   }
 
-  process(job: Job): Promise<any> {
-    return new Promise((resolve, reject) => {
-      if (job.data.tripId) {
-        const tripId = job.data.tripId as string;
-        this.driversService
-          .getNearestDriver(tripId)
-          .then((driverId) => {
-            console.log(driverId);
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-        console.log('DEBUG: send notification to driver');
-        fromEvent(this.redis, 'message')
-          .pipe(
-            timeout(1000),
-            take(1),
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            map(([_, message]) => message as string),
-            tap(() => {
-              this.redis.unsubscribe(tripId).catch((err: Error) => {
-                reject(err);
-              });
-            }),
-          )
-          .subscribe({
-            next: (message) => {
-              if (message === 'DRIVER_ACCEPT') {
-                resolve(true);
-              } else {
-                reject(new Error('Driver did not accept the trip'));
-              }
-            },
-            error: (err: Error) => {
-              if (err instanceof TimeoutError) {
-                reject(new Error('SEARCH_DRIVER_TIMEOUT'));
-              } else {
-                reject(new Error('TRIP_FAILED'));
-              }
-            },
-          });
+  async process(job: Job, token: string): Promise<void> {
+    const trip = job.data.trip as Trip;
+    const driver = await this.driversService.getNearest(
+      trip.pickup.location as Location,
+    );
+    if (driver) {
+      await this.tripsService.sentRequest(
+        trip.id as string,
+        driver.id as string,
+      );
+    } else {
+      Logger.log('No driver found');
+      await job.moveToDelayed(Date.now() + 500, token);
+      throw new DelayedError();
+    }
+  }
+}
 
-        this.redis.subscribe(tripId).catch((err: Error) => {
-          reject(err);
-        });
+@Processor('CANCEL_REQUEST')
+export class RequestSentTimeoutProcessor extends WorkerHost {
+  constructor(private readonly tripsService: TripsService) {
+    super();
+  }
+
+  async process(job: Job): Promise<void> {
+    const tripId = job.data.tripId as string;
+    const trip: Trip = await this.tripsService.getTrip(tripId);
+    if (trip.status === TripStatus.REQUESTED) {
+      await this.tripsService.rejectTrip(tripId);
+    }
+  }
+}
+
+@Processor('CANCEL_SEACHING')
+export class SearchDriverTimeoutProcessor extends WorkerHost {
+  constructor(private readonly tripsService: TripsService) {
+    super();
+  }
+
+  async process(job: Job, token: string): Promise<void> {
+    const trip: Trip = job.data.trip as Trip;
+    try {
+      if (trip.status === TripStatus.REQUESTED) {
+        await job.moveToDelayed(Date.now() + 500, token);
+        throw new DelayedError();
+      } else {
+        await this.tripsService.cancelByTimeout(trip.id as string);
       }
-    });
+    } catch (error) {
+      Logger.log('Cancel searching', error);
+    }
   }
 }

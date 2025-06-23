@@ -1,7 +1,8 @@
-import { Address } from '@lib/db-lib';
+import { Address, Location } from '@lib/db-lib';
 
 export class GetPlacesRequestDto {
   query: string;
+  location?: Location;
 }
 
 export class GetPlacesResponseDto {

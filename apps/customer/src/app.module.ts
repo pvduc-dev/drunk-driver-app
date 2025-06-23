@@ -4,7 +4,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { TripsModule } from './trips/trips.module';
 import { GeoModule } from './geo/geo.module';
-import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -20,16 +19,6 @@ import { BullModule } from '@nestjs/bullmq';
         autoIndex: true,
         authSource: 'admin',
         retryWrites: true,
-      }),
-      inject: [ConfigService],
-    }),
-    BullModule.forRootAsync({
-      useFactory: (configService: ConfigService) => ({
-        connection: {
-          host: configService.get<string>('REDIS_HOST'),
-          port: configService.get<number>('REDIS_PORT'),
-          password: configService.get<string>('REDIS_PASSWORD'),
-        },
       }),
       inject: [ConfigService],
     }),

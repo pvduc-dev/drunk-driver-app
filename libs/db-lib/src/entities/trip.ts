@@ -6,6 +6,20 @@ import { Path } from './path';
 import { Customer } from './customer';
 import { Driver } from './driver';
 
+export enum TripStatus {
+  PENDING = 'PENDING',
+  REQUESTED = 'REQUESTED',
+  ACCEPTED = 'ACCEPTED',
+  ARRIVING = 'ARRIVING',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  CANCELLED_BY_CUSTOMER = 'CANCELLED_BY_CUSTOMER',
+  CANCELLED_BY_DRIVER = 'CANCELLED_BY_DRIVER',
+  CANCELLED_BY_SYSTEM = 'CANCELLED_BY_SYSTEM',
+  NO_SHOW = 'NO_SHOW',
+  FAILED = 'FAILED',
+}
+
 @Schema({
   toJSON: {
     transform: (_, ret) => {
@@ -17,6 +31,7 @@ import { Driver } from './driver';
       ret.id = ret._id.toString();
     },
   },
+  timestamps: true,
 })
 export class Trip {
   @ApiPropertyOptional()
@@ -62,9 +77,11 @@ export class Trip {
   })
   completedAt?: Date;
 
-  @Prop({ default: 'pending' })
-  @ApiPropertyOptional()
-  status?: string;
+  @Prop({ default: TripStatus.PENDING, index: true })
+  @ApiPropertyOptional({
+    enum: TripStatus,
+  })
+  status?: TripStatus;
 
   @Prop()
   @ApiPropertyOptional()
@@ -81,4 +98,8 @@ export class Trip {
   @Prop(raw(SchemaFactory.createForClass(Path)))
   @ApiPropertyOptional()
   path?: Path;
+
+  createdAt?: Date;
+
+  updatedAt?: Date;
 }

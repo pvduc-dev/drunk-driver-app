@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Address, Driver, Location } from '@lib/db-lib';
+import { Driver, DriverStatus, Location } from '@lib/db-lib';
 
 @Injectable()
 export class DriversService {
@@ -17,45 +17,37 @@ export class DriversService {
     return driver;
   }
 
-  async getNearbyDrivers(address: Address) {
-    const drivers = await this.driverModel.find({
-      location: {
-        $near: {
-          $geometry: address,
-        },
+  async updateLocation(driverId: string, location?: Location) {
+    return this.driverModel.findByIdAndUpdate(
+      driverId,
+      { latestLocation: location, latestUpdate: new Date() },
+      { new: true },
+    );
+  }
+
+  async getNearest(location: Location): Promise<Driver | null> {
+    return this.driverModel.findOne({
+      latestLocation: {
+        $near: location,
       },
+      status: DriverStatus.ONLINE,
+      latestUpdate: { $gt: new Date(Date.now() - 1000 * 60 * 5) },
     });
-    return drivers;
   }
 
-  async updateDriverLocation(driverId: string, location: Location) {
+  async updateStatus(
+    driverId: string,
+    status: DriverStatus,
+    latestLocation?: Location,
+  ) {
     const driver = await this.driverModel.findByIdAndUpdate(
       driverId,
-      {
-        location,
-      },
+      { status, latestLocation, latestUpdate: new Date() },
       { new: true },
     );
     if (!driver) {
-      throw new NotFoundException('Driver not found');
+      throw new NotFoundException('Không tìm thấy tài xế');
     }
     return driver;
-  }
-
-  async updateDriverStatus(driverId: string, isAvailable: boolean) {
-    const driver = await this.driverModel.findByIdAndUpdate(
-      driverId,
-      { isAvailable },
-      { new: true },
-    );
-    if (!driver) {
-      throw new NotFoundException('Driver not found');
-    }
-    return driver;
-  }
-
-  async getNearestDriver(tripId: string) {
-    // eslint-disable-next-line @typescript-eslint/await-thenable
-    return await '6845d44095ee3bf023a938a0';
   }
 }

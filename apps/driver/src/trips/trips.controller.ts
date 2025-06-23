@@ -58,4 +58,10 @@ export class TripsController {
   async completeTrip(@Param('id') id: string): Promise<void> {
     await this.tripsService.completeTrip(id);
   }
+
+  @Post(':id/start')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async startTrip(@Param('id') id: string): Promise<void> {
+    await this.tripsService.startTrip(id);
+  }
 }

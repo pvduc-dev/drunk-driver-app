@@ -18,18 +18,6 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@lib/notify-lib": [
-        "libs/notify-lib/src"
-      ],
-      "@lib/notify-lib/*": [
-        "libs/notify-lib/src/*"
-      ],
-      "@lib/otp-lib": [
-        "libs/otp-lib/src"
-      ],
-      "@lib/otp-lib/*": [
-        "libs/otp-lib/src/*"
-      ],
       "@lib/auth": [
         "libs/auth/src"
       ],
@@ -53,6 +41,24 @@
       ],
       "@lib/geo-lib/*": [
         "libs/geo-lib/src/*"
+      ],
+      "@lib/job-lib": [
+        "libs/job-lib/src"
+      ],
+      "@lib/job-lib/*": [
+        "libs/job-lib/src/*"
+      ],
+      "@lib/notify-lib": [
+        "libs/notify-lib/src"
+      ],
+      "@lib/notify-lib/*": [
+        "libs/notify-lib/src/*"
+      ],
+      "@lib/otp-lib": [
+        "libs/otp-lib/src"
+      ],
+      "@lib/otp-lib/*": [
+        "libs/otp-lib/src/*"
       ],
       "@lib/sms-lib": [
         "libs/sms-lib/src"
