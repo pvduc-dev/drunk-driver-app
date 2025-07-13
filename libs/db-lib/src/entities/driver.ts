@@ -2,12 +2,6 @@ import { Prop, Schema } from '@nestjs/mongoose';
 import { Location } from './location';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
-export enum DriverStatus {
-  OFFLINE = 'offline',
-  ONLINE = 'online',
-  ON_TRIP = 'on_trip',
-}
-
 @Schema({
   toJSON: {
     transform: (_, ret) => {
@@ -32,19 +26,19 @@ export class Driver {
   @ApiPropertyOptional()
   phone?: string;
 
-  @Prop({
-    default: DriverStatus.OFFLINE,
-  })
-  @ApiPropertyOptional({
-    enum: DriverStatus,
-  })
-  status?: DriverStatus;
+  @Prop({ default: false })
+  @ApiPropertyOptional()
+  isActive?: boolean;
 
   @Prop({ index: '2dsphere' })
   @ApiPropertyOptional()
-  latestLocation?: Location;
+  currentLocation?: Location;
 
   @Prop()
   @ApiPropertyOptional()
-  latestUpdate?: Date;
+  currentLocationUpdatedAt?: Date;
+
+  @Prop()
+  @ApiPropertyOptional()
+  currentTripId?: string;
 }

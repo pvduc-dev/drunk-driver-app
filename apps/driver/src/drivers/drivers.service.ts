@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Driver, DriverStatus, Location } from '@lib/db-lib';
+import { Driver, Location } from '@lib/db-lib';
 
 @Injectable()
 export class DriversService {
@@ -17,10 +17,10 @@ export class DriversService {
     return driver;
   }
 
-  async updateLocation(driverId: string, location?: Location) {
+  async updateLocation(driverId: string, currentLocation?: Location) {
     return this.driverModel.findByIdAndUpdate(
       driverId,
-      { latestLocation: location, latestUpdate: new Date() },
+      { currentLocation, currentLocationUpdatedAt: new Date() },
       { new: true },
     );
   }
@@ -28,21 +28,20 @@ export class DriversService {
   async getNearest(location: Location): Promise<Driver | null> {
     return this.driverModel.findOne({
       latestLocation: {
-        $near: location,
+        $near: {
+          $geometry: location,
+          // $maxDistance: 70000,
+        },
       },
-      status: DriverStatus.ONLINE,
-      latestUpdate: { $gt: new Date(Date.now() - 1000 * 60 * 5) },
+      isActive: true,
+      currentLocationUpdatedAt: { $gt: new Date(Date.now() - 1000 * 6 * 5) },
     });
   }
 
-  async updateStatus(
-    driverId: string,
-    status: DriverStatus,
-    latestLocation?: Location,
-  ) {
+  async updateStatus(driverId: string, isActive: boolean) {
     const driver = await this.driverModel.findByIdAndUpdate(
       driverId,
-      { status, latestLocation, latestUpdate: new Date() },
+      { isActive },
       { new: true },
     );
     if (!driver) {

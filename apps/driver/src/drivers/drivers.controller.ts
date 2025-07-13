@@ -32,8 +32,7 @@ export class DriversController {
   ): Promise<Driver> {
     const driver = await this.driversService.updateStatus(
       driverId,
-      updateStatusDto.status,
-      updateStatusDto.latestLocation,
+      updateStatusDto.isActive ?? false,
     );
     return driver;
   }

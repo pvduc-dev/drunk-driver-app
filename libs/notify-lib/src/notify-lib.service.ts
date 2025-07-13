@@ -1,5 +1,5 @@
 import { DeviceToken } from '@lib/db-lib/index';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { InjectFirebaseAdmin, FirebaseAdmin } from 'nestjs-firebase';
@@ -15,6 +15,7 @@ import { InjectFirebaseAdmin, FirebaseAdmin } from 'nestjs-firebase';
  */
 @Injectable()
 export class NotifyLibService {
+  private logger = new Logger(NotifyLibService.name);
   constructor(
     @InjectModel(DeviceToken.name)
     private readonly deviceTokenModel: Model<DeviceToken>,
@@ -57,18 +58,140 @@ export class NotifyLibService {
     body: string;
     data: Record<string, any>;
   }) {
+    this.logger.debug('Push notification', userId);
+    const token = await this.getTokens(userId);
+    if (!token) {
+      this.logger.debug('No token found', userId);
+      return;
+    }
+    this.logger.debug('Token found', token);
+    try {
+      await this.firebase.messaging.send({
+        token: token,
+        data: data,
+        apns: {
+          payload: {
+            aps: {
+              sound: {
+                name: 'default',
+                volume: 1.0,
+                critical: true,
+              },
+              alert: {
+                title: title,
+                body: body,
+              },
+            },
+          },
+          headers: {
+            'apns-priority': '10',
+            'apns-push-type': 'alert',
+          },
+        },
+        android: {
+          priority: 'high',
+          notification: {
+            title: title,
+            body: body,
+            sound: 'default',
+            priority: 'high',
+            visibility: 'public',
+            channelId: 'default',
+          },
+        },
+      });
+    } catch (error) {
+      this.logger.error('Error pushing notification', error);
+    }
+  }
+
+  public async pushToDeviceToken(
+    token: string,
+    title: string,
+    body: string,
+    data: Record<string, any>,
+  ) {
+    // await this.firebase.messaging.send({
+    //   token: token,
+    //   data: data,
+    //   apns: {
+    //     payload: {
+    //       aps: {
+    //         sound: {
+    //           name: 'default',
+    //           volume: 1.0,
+    //           critical: true,
+    //         },
+    //         alert: {
+    //           title: title,
+    //           body: body,
+    //         },
+    //       },
+    //     },
+    //     headers: {
+    //       'apns-priority': '10',
+    //       'apns-push-type': 'alert',
+    //     },
+    //   },
+    //   android: {
+    //     priority: 'high',
+    //     notification: {
+    //       title: title,
+    //       body: body,
+    //       sound: 'default',
+    //       priority: 'high',
+    //       visibility: 'public',
+    //       channelId: 'default',
+    //     },
+    //   },
+    // });
+    try {
+      this.logger.debug('Pushing notification to device token', token);
+      return this.firebase.messaging.send({
+        token: token,
+        data: data,
+        notification: {
+          title: title,
+          body: body,
+        },
+      });
+    } catch (error) {
+      this.logger.error('Error pushing notification', error);
+    }
+  }
+
+  async pushTripEvent({
+    tripId,
+    event,
+    userId,
+    title,
+    body,
+  }: {
+    tripId: string;
+    event: string;
+    userId: string;
+    title: string;
+    body: string;
+  }) {
     const token = await this.getTokens(userId);
     if (!token) {
       return;
     }
+    const data = {
+      tripId: tripId,
+      event: event,
+    };
     await this.firebase.messaging.send({
       token: token,
       data: data,
       apns: {
         payload: {
           aps: {
-            sound: 'default',
-            badge: 1,
+            sound: {
+              name: 'default',
+              volume: 1.0,
+              critical: true,
+            },
             alert: {
               title: title,
               body: body,
@@ -82,23 +205,15 @@ export class NotifyLibService {
       },
       android: {
         priority: 'high',
+        notification: {
+          title: title,
+          body: body,
+          sound: 'default',
+          priority: 'high',
+          visibility: 'public',
+          channelId: 'default',
+        },
       },
-    });
-  }
-
-  public pushToDeviceToken(
-    token: string,
-    title: string,
-    body: string,
-    data: Record<string, any>,
-  ) {
-    return this.firebase.messaging.send({
-      token: token,
-      notification: {
-        title: title,
-        body: body,
-      },
-      data: data,
     });
   }
 }

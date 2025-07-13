@@ -4,6 +4,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseArrayPipe,
   Post,
   Query,
 } from '@nestjs/common';
@@ -17,8 +18,16 @@ export class TripsController {
   constructor(private readonly tripsService: TripsService) {}
 
   @Get()
-  async getTrips(@Query('status') status: string): Promise<Trip[]> {
-    return await this.tripsService.getTrips(status);
+  async getTrips(
+    @User('id') driverId: string,
+    @Query('status', new ParseArrayPipe({ optional: true })) status: string[],
+  ): Promise<Trip[]> {
+    return await this.tripsService.getTrips(driverId, status);
+  }
+
+  @Get('current')
+  async getCurrentTrip(@User('id') driverId: string): Promise<Trip> {
+    return await this.tripsService.getCurrentTrip(driverId);
   }
 
   @Get(':id')

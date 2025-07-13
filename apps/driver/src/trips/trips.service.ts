@@ -1,13 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Job, Queue } from 'bullmq';
-import { Trip, TripStatus } from '@lib/db-lib';
-import { Model } from 'mongoose';
+import { Driver, Trip, TripStatus } from '@lib/db-lib';
+import { Model, Types } from 'mongoose';
 import { NotifyLibService } from '@lib/notify-lib';
 
 @Injectable()
 export class TripsService {
+  private logger = new Logger(TripsService.name);
   constructor(
     @InjectQueue('SEARCH_DRIVER') private readonly searchDriverQueue: Queue,
     @InjectQueue('CANCEL_SEACHING')
@@ -16,10 +17,20 @@ export class TripsService {
     private readonly cancelRequestQueue: Queue,
     @InjectModel(Trip.name) private readonly tripModel: Model<Trip>,
     private readonly notifyLibService: NotifyLibService,
+    @InjectModel(Driver.name) private readonly driverModel: Model<Driver>,
   ) {}
 
-  async getTrips(driverId: string) {
-    const trips = await this.tripModel.find({ driverId });
+  async getTrips(driverId: string, status: string[]) {
+    const trips = await this.tripModel
+      .find({
+        driver: driverId,
+        status: { $in: status },
+      })
+      .populate('customer')
+      .populate('driver');
+    if (!trips) {
+      throw new NotFoundException('Không tìm thấy chuyển đi');
+    }
     return trips;
   }
 
@@ -29,7 +40,7 @@ export class TripsService {
       .populate('customer')
       .populate('driver');
     if (!trip) {
-      throw new NotFoundException('Trip not found');
+      throw new NotFoundException('Không tìm thấy chuyển đi');
     }
     return trip;
   }
@@ -126,15 +137,6 @@ export class TripsService {
       { new: true },
     );
     if (trip) {
-      await this.notifyLibService.push({
-        userId: trip.customer as string,
-        title: 'Không thể tìm thấy tài xế cho bạn',
-        body: `Không thể tìm thấy tài xế cho bạn`,
-        data: {
-          event: 'CANCELLED_BY_SYSTEM',
-          tripId,
-        },
-      });
       const searchDriverJob: Job = await this.searchDriverQueue.getJob(
         trip.id as string,
       );
@@ -147,6 +149,15 @@ export class TripsService {
       if (cancelRequestJob) {
         await cancelRequestJob.remove();
       }
+      await this.notifyLibService.push({
+        userId: (trip.customer as unknown as Types.ObjectId)?.toString(),
+        title: 'Không thể tìm thấy tài xế cho bạn',
+        body: `Không thể tìm thấy tài xế cho bạn`,
+        data: {
+          event: 'CANCELLED_BY_SYSTEM',
+          tripId,
+        },
+      });
     }
   }
 
@@ -182,6 +193,9 @@ export class TripsService {
     if (!trip) {
       throw new NotFoundException('Trip not found');
     }
+    await this.driverModel.findByIdAndUpdate(trip.driver as string, {
+      currentTripId: '',
+    });
     await this.notifyLibService.push({
       userId: trip.customer as string,
       title: 'Chuyển đi đã hoàn thành',
@@ -208,5 +222,13 @@ export class TripsService {
         jobId: trip?.id as string,
       },
     );
+  }
+
+  async getCurrentTrip(driverId: string) {
+    const driver = await this.driverModel.findById(driverId);
+    if (!driver!.currentTripId) {
+      throw new NotFoundException('Hiện tại tài xế không có chuyển đi nào');
+    }
+    return await this.tripModel.findById(driver!.currentTripId);
   }
 }

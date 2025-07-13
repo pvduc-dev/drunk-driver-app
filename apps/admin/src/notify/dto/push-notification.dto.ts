@@ -4,7 +4,7 @@ export class PushNotificationDto {
   @ApiProperty({
     description: 'The token of the device to send the notification to',
     example:
-      'cM8Gs3mXSoeH0R18f5xlH1:APA91bHQnavpVn4RcPi_d5pDzkGQsIBuxnPqQdiRP1quTcdcSTDq-UbexzlRgyQiWZ7pgmJcTDaE7O7N_AAJ8gtPBqn1yJY7vMfCA9pypHEOCj8udzVw1uE',
+      'ceJF4sQqQAqt97BuAQ4HR2:APA91bHQwG39vYTYw-sdDYiIEyvVAl4qRjrJ9mwcYdOKWAOiAzQLquZP6v_7ZPyqdnyc6OPI1MPHUpZWUoabjhMtCZSLBhBRlys0PL8dG1Lrz58k8MoRnKU',
   })
   token: string;
   @ApiProperty({
@@ -19,7 +19,7 @@ export class PushNotificationDto {
   body: string;
   @ApiProperty({
     description: 'The data of the notification',
-    example: { type: 'trip', tripId: '123' },
+    example: { event: 'trip', tripId: '123' },
   })
   data: Record<string, any>;
 }

@@ -7,6 +7,8 @@ import { Logger } from '@nestjs/common';
 
 @Processor('SEARCH_DRIVER')
 export class SearchDriverProcessor extends WorkerHost {
+  private logger = new Logger(SearchDriverProcessor.name);
+
   constructor(
     private readonly tripsService: TripsService,
     private readonly driversService: DriversService,
@@ -25,7 +27,7 @@ export class SearchDriverProcessor extends WorkerHost {
         driver.id as string,
       );
     } else {
-      Logger.log('No driver found');
+      this.logger.debug('No driver found');
       await job.moveToDelayed(Date.now() + 500, token);
       throw new DelayedError();
     }
@@ -49,6 +51,7 @@ export class RequestSentTimeoutProcessor extends WorkerHost {
 
 @Processor('CANCEL_SEACHING')
 export class SearchDriverTimeoutProcessor extends WorkerHost {
+  private logger = new Logger(SearchDriverTimeoutProcessor.name);
   constructor(private readonly tripsService: TripsService) {
     super();
   }
@@ -63,7 +66,7 @@ export class SearchDriverTimeoutProcessor extends WorkerHost {
         await this.tripsService.cancelByTimeout(trip.id as string);
       }
     } catch (error) {
-      Logger.log('Cancel searching', error);
+      this.logger.error('Cancel searching', error);
     }
   }
 }

@@ -45,7 +45,7 @@ export class TripsService {
         trip: createdTrip,
       },
       {
-        delay: 3000000,
+        delay: 10 * 1 * 1000,
         jobId: createdTrip.id as string,
       },
     );
@@ -58,8 +58,15 @@ export class TripsService {
     };
   }
 
-  async getTrips(customerId: string): Promise<Trip[]> {
-    return this.tripModel.find({ customer: customerId as Customer });
+  async getTrips(customerId: string, status: string[]): Promise<Trip[]> {
+    const query = this.tripModel.find({
+      customer: customerId as Customer,
+    });
+    if (status?.length > 0) {
+      query.where('status').in(status);
+    }
+    const trips = await query.populate('driver').populate('customer');
+    return trips;
   }
 
   async getTrip(tripId: string): Promise<Trip> {
@@ -120,7 +127,7 @@ export class TripsService {
       .populate('driver')
       .populate('customer');
     if (!trip) {
-      throw new NotFoundException('Trip not found');
+      throw new NotFoundException('Không tìm thấy chuyển đi');
     }
     return trip;
   }
